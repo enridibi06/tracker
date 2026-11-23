@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tracker">
+<meta name="theme-color" content="#0a86a8">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Tracker allenamenti e abitudini</title>
+<style>
+:root{--bg:#f2f6f7;--tx:#10242b;--mu:#5c7077;--ln:#d5e0e3;--dim:#e4edef;--ac:#0a86a8;--ac2:#4fb7d2;--dg:#c8431f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b171c;--tx:#e6f1f3;--mu:#8aa2aa;--ln:#213840;--dim:#15272e;--ac:#3cc3e6;--ac2:#1d7f99;--dg:#ff7a59}}
+:root[data-theme="dark"]{--bg:#0b171c;--tx:#e6f1f3;--mu:#8aa2aa;--ln:#213840;--dim:#15272e;--ac:#3cc3e6;--ac2:#1d7f99;--dg:#ff7a59}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit}
+.w{max-width:540px;margin:0 auto;padding:14px 18px 48px}
+.top{display:flex;align-items:center;gap:10px}
+.date{flex:1;text-align:center;font-family:ui-rounded,"SF Pro Rounded",system-ui,sans-serif}
+.date b{display:block;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.date small{color:var(--mu);font-size:14px}
+.nb{width:46px;height:46px;border-radius:50%;border:1px solid var(--ln);background:none;font-size:24px;line-height:1}
+.lnk{background:none;border:0;color:var(--ac);padding:2px 6px;font-size:14px}
+.tabs{display:flex;gap:4px;margin:16px 0 12px;border-bottom:1px solid var(--ln)}
+.tabs button{flex:1;padding:10px 0;background:none;border:0;border-bottom:3px solid transparent;color:var(--mu);font-size:13px}
+.tabs button.on{color:var(--tx);border-bottom-color:var(--ac);font-weight:600}
+.lane{height:12px;border-radius:6px;background:var(--dim);overflow:hidden;margin:6px 0 2px}
+.lane i{display:block;height:100%;border-radius:6px;background:repeating-linear-gradient(90deg,var(--ac) 0 12px,var(--ac2) 12px 16px);transition:width .3s}
+.cnt{color:var(--mu);font-size:14px;margin:0 0 4px}
+h2{font-size:15px;font-weight:600;color:var(--mu);margin:22px 0 2px}
+.row{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:10px 0;background:none;border:0;border-top:1px solid var(--ln);text-align:left;cursor:pointer}
+h2+.row,h2+.nop{border-top:0}
+.box{width:30px;height:30px;border-radius:50%;border:2px solid var(--mu);flex:none;display:grid;place-items:center;color:var(--bg);font-size:17px;font-weight:700}
+.done .box{background:var(--ac);border-color:var(--ac)}
+.lb{flex:1}
+.st{font-size:14px;color:var(--mu);white-space:nowrap}
+.nop{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--ln);color:var(--mu)}
+.nop .lb{color:var(--tx)}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+input,textarea{width:100%;font:inherit;font-size:16px;color:var(--tx);background:var(--dim);border:1px solid var(--ln);border-radius:10px;padding:10px 12px}
+textarea{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.nop input{flex:1}
+.nt{margin:4px 0 12px}
+.sm{padding:9px 14px;border-radius:10px;border:1px solid var(--ln);background:none;font-size:15px}
+.dg{color:var(--dg);border-color:var(--dg)}
+.mu{color:var(--mu);font-size:14px;margin:8px 0}
+.wk .st{min-width:0;font-size:13px;text-align:right}
+.g{display:block;color:var(--mu);font-size:14px;margin-top:2px}
+.ex{font-weight:600;color:var(--tx)}
+.hb{margin:14px 0}
+.hl{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
+.big{font-family:ui-rounded,"SF Pro Rounded",system-ui,sans-serif;font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-top:8px}
+svg{display:block;margin:6px 0}
+.fl{display:block;font-size:14px;color:var(--mu);margin:14px 0 4px}
+.fd{font-family:inherit;font-size:16px;margin-top:4px}
+.wk.sel{background:var(--dim);margin:0 -10px;width:calc(100% + 20px);padding:10px;border-radius:10px;border-top-color:transparent}
+</style>
+</head>
+<body>
+<div class="w" id="app"></div>
+<script>
+(function(){
+var DL=["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"],
+DS=["Dom","Lun","Mar","Mer","Gio","Ven","Sab"],
+MN=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"],
+SW=[1,3,6],GY=[1,3,6],KEY="tracker-v1",PS="2026-11-23",PE="2027-02-02",
+KN={T:"Teoria",E:"Esercizi",R:"Ripasso",S:"Simulazione",C:"Consolidamento"},SN={A:"Automazione",F:"Fisica",M:"Matematica",I:"Impianti"},
+ES=[["Automazione","2027-01-07"],["Matematica","2027-01-27"],["Fisica","2027-02-01"],["Impianti","2027-02-02"]],
+SP={"2026-12-08":"Festivo, Immacolata","2026-12-24":"Libero, vigilia","2026-12-25":"Festivo, Natale","2026-12-26":"Festivo, Santo Stefano","2026-12-31":"Libero, San Silvestro","2027-01-01":"Festivo, Capodanno","2027-01-06":"Festivo, Epifania","2027-01-07":"ESAME Automazione","2027-01-27":"ESAME Matematica","2027-02-01":"ESAME Fisica","2027-02-02":"ESAME Impianti"},
+G="Facoltativo (max 2h): recupero di un blocco saltato, altrimenti libero",
+FAC={"2026-11-28":G,"2026-12-05":G,"2026-12-12":G,"2026-12-19":G,"2027-01-02":"Facoltativo (max 2h): Automazione, terza simulazione solo se la 1 o la 2 sono andate male","2027-01-09":"Facoltativo (max 2h): recupero blocchi. Se Automazione non è andato, vedi il Piano B nel PDF","2027-01-16":"Facoltativo (max 2h): Fisica, un tema passato a tempo","2027-01-22":"2° appello Automazione: solo se serve (Piano B nel PDF)","2027-01-23":"Facoltativo (max 2h): Matematica, esercizi extra sui punti deboli","2027-01-30":"Facoltativo (max 1h): Fisica, formulario a memoria","2027-01-31":"Ripasso leggero, max 40’: Fisica formule 20’ + Impianti schemi 20’, poi stop","2027-02-01":"Sera: ripasso leggero Impianti, max 30’ (facoltativo)"},
+DATA={
+"2026-11-23":["A|T|60|=A1","F|T|60|=F1"],
+"2026-11-24":["A|E|60|=A1","M|T|60|M6 (ultimo argomento): rileggi teoria + esempi svolti, schema 1 pag."],
+"2026-11-25":["F|E|60|=F1","I|C|60|"],
+"2026-11-27":["A|T|60|=A2","F|T|60|=F2"],
+"2026-11-30":["A|T|60|=A3","F|T|60|=F3"],
+"2026-12-01":["A|E|60|=A2–A3","M|E|60|=M6"],
+"2026-12-02":["F|E|60|=F2–F3","I|C|60|"],
+"2026-12-04":["A|T|60|=A4","F|T|60|=F4"],
+"2026-12-07":["A|T|60|=A5","F|T|60|=F5"],
+"2026-12-09":["F|E|60|=F4–F5","I|C|60|"],
+"2026-12-11":["A|E|60|=A4–A5","M|T|60|=M5"],
+"2026-12-14":["A|T|60|=A6","F|T|60|=F6"],
+"2026-12-15":["A|E|60|=A6","M|E|60|=M5"],
+"2026-12-16":["F|E|60|F6 + 2 esercizi misti da F1–F5, segna ogni errore con X","I|C|60|"],
+"2026-12-18":["A|T|60|=A7","F|T|60|=F7"],
+"2026-12-21":["A|E|60|=A7","F|T|60|=F8"],
+"2026-12-22":["A|T|60|=A8","M|E|60|M5–M6 misti: 4+ esercizi senza soluzione, segna gli errori"],
+"2026-12-23":["A|E|60|=A8","I|R|60|Schema generale del programma: 1 pagina, cosa contiene ogni blocco I1–I6"],
+"2026-12-28":["A|E|60|A1–A8 misti: 1 esercizio per blocco, poi 2 sui più deboli","M|R|60|M1–M2: schema + 2 esercizi per blocco"],
+"2026-12-29":["A|S|120|Simulazione 1: tema d’esame completo, tempo reale, senza appunti"],
+"2026-12-30":["A|R|60|Correzione simulazione 1: rifai gli esercizi sbagliati, rivedi la teoria collegata","F|E|60|=F7–F8"],
+"2027-01-04":["A|S|120|Simulazione 2: nuovo tema completo, tempo reale, senza appunti"],
+"2027-01-05":["A|R|60|Correzione simulazione 2 + ripasso a voce di formule e definizioni A1–A8","M|R|60|M3–M4: schema + 2 esercizi per blocco"],
+"2027-01-08":["F|T|60|=F9","I|T|60|I1–I3: integra le lacune con slide/libro + 5 domande a voce"],
+"2027-01-11":["F|T|60|=F10","M|E|60|M1–M4 da temi d’esame passati: 4+ esercizi senza soluzione, segna gli errori"],
+"2027-01-12":["F|E|60|=F9–F10","I|T|60|I4–I6: integra le lacune con slide/libro + 5 domande a voce"],
+"2027-01-13":["M|E|60|M5–M6 da temi d’esame passati: 4+ esercizi senza soluzione, segna gli errori","I|E|60|I1–I3: rifai da solo 2 casi pratici, verifica con gli appunti"],
+"2027-01-15":["F|R|60|F1–F5: schemi + 4 esercizi misti","I|E|60|I4–I6: rifai da solo 2 casi pratici, verifica con gli appunti"],
+"2027-01-18":["M|S|120|Simulazione: tema d’esame completo, tempo reale, senza appunti"],
+"2027-01-19":["M|R|60|Correzione simulazione + teoria che mancava","F|E|60|F6–F10 misti: 4+ esercizi senza soluzione, segna ogni errore con X"],
+"2027-01-20":["M|R|60|Punti deboli: teoria dei 2–3 argomenti peggiori + 3 esercizi","F|R|60|Punti deboli F1–F10: teoria dei 3 argomenti peggiori + 3 esercizi"],
+"2027-01-22":["F|E|60|1 tema d’esame passato completo, senza limite di tempo, poi correggi","I|R|60|I1–I6: 10 domande aperte a voce, annota i buchi"],
+"2027-01-25":["F|S|120|Simulazione: tema d’esame completo, tempo reale, senza appunti"],
+"2027-01-26":["M|R|60|Formule + errori ricorrenti + 3 esercizi veloci (carico leggero)","I|S|60|Simulazione: 10 domande/casi in 60’, poi correggi con gli appunti"],
+"2027-01-29":["F|R|60|Correzione simulazione + formulario e definizioni a memoria","I|R|60|Schemi I1–I6 + buchi emersi dalla simulazione"]
+};
+function p(n){return n<10?"0"+n:""+n}
+function k(d){return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
+function now(){var d=new Date();d.setHours(12,0,0,0);return d}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function def(){return{habits:[{id:"h1",n:"Sonno: almeno 7 ore"},{id:"h2",n:"Acqua: bottiglia finita"},{id:"h3",n:"Stretching e mobilità, 10’"},{id:"h4",n:"Ho letto il piano di domani"}],days:{}}}
+function load(){try{var o=JSON.parse(localStorage.getItem(KEY));if(o&&Array.isArray(o.habits)&&o.days)return o}catch(e){}return def()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}clearTimeout(tm);tm=setTimeout(persist,600)}
+var DBX=null,UID=null,ready=false,fail=false,ST="Dati salvati su questo telefono.",last={},chain=Promise.resolve(),tm=null,pre={};
+function setSt(t){ST=t;var e=document.getElementById("stt");if(e)e.textContent=t}
+function docs(){var o={cfg:{habits:S.habits}},m={};Object.keys(S.days).forEach(function(q){var z="m"+q.slice(0,7);(m[z]=m[z]||{})[q]=S.days[q]});Object.keys(m).forEach(function(z){o[z]={days:m[z]}});return o}
+function persist(){if(!DBX||!ready)return;var o=docs(),n=0;
+Object.keys(o).forEach(function(id){var js=JSON.stringify(o[id]);if(last[id]===js)return;last[id]=js;n++;chain=chain.then(function(){return DBX.doc("data/users/"+UID+"/"+id).set(o[id]).then(null,function(){delete last[id];fail=true})})});
+Object.keys(last).forEach(function(id){if(!(id in o)){delete last[id];n++;chain=chain.then(function(){return DBX.doc("data/users/"+UID+"/"+id).delete().then(null,function(){fail=true})})}});
+if(n){setSt("Salvataggio…");chain=chain.then(function(){setSt(fail?"Salvataggio non riuscito: riprovo alla prossima modifica.":"Dati salvati nel tuo account.");fail=false})}}
+var S=load(),cur=now(),tab="oggi",per="sett",armed=false,app=document.getElementById("app");
+function rec(key){return S.days[key]||{h:{},sw:0,gym:0,note:""}}
+function wr(key){if(!ready)pre[key]=1;return S.days[key]||(S.days[key]={h:{},sw:0,gym:0,note:""})}
+function plan(d){var w=d.getDay(),a=[];if(SW.indexOf(w)>-1)a.push(["sw","Nuoto"]);if(GY.indexOf(w)>-1)a.push(["gym","Palestra, dopo il nuoto"]);return a}
+function streak(id){var d=new Date(cur),n=0;if(!rec(k(d)).h[id]){if(k(d)===k(now()))d.setDate(d.getDate()-1);else return 0}
+while(rec(k(d)).h[id]){n++;d.setDate(d.getDate()-1)}return n}
+function blocks(key){return(DATA[key]||[]).map(function(s){var a=s.split("|");return[a[0],a[1],a[2],a[3]||""]})}
+function gl(b){var t=b[3];if(t.charAt(0)==="=")return t.slice(1)+": "+(b[1]==="T"?"studio + schema 1 pag. + 5 domande a voce":"4+ esercizi senza guardare la soluzione, segna ogni errore con X");return t||"Appunti delle lezioni della settimana: riordina, integra con slide/libro, 5 domande a voce"}
+function none(key,d){var t=SP[key],f=FAC[key]||(d.getDay()===0?"Domenica: max 15’ per guardare la settimana":""),h;
+if(t)h='<div class="nop'+(t.indexOf("ESAME")===0?' ex':'')+'">'+t+'</div>';
+else if(key>PE)h='<div class="nop">Piano concluso</div>';
+else if(key<PS)h='<div class="nop">Il piano inizia il 23 novembre</div>';
+else if(d.getDay()===4)h='<div class="nop">Libero, nessuno studio</div>';
+else h='<div class="nop">Nessun blocco previsto</div>';
+return h+(f?'<p class="mu">'+f+'</p>':'')}
+function pend(){var td=k(now());if(k(cur)!==td)return'';var L=[];Object.keys(DATA).sort().forEach(function(key){if(key>=td)return;var s=rec(key).s||{};blocks(key).forEach(function(b,i){if(!s[i])L.push([key,b])})});
+if(!L.length)return'';var h='<h2>Da recuperare</h2>';
+L.slice(-5).forEach(function(x){var d=new Date(x[0]+"T12:00:00");h+='<button class="row" data-a="o" data-d="'+x[0]+'"><span class="lb"><b>'+DS[d.getDay()]+' '+d.getDate()+' '+MN[d.getMonth()]+'</b><span class="g">'+SN[x[1][0]]+' · '+KN[x[1][1]]+'</span></span></button>'});
+return h+'<p class="mu">'+(L.length>5?'Altri '+(L.length-5)+' più indietro. ':'')+'Recupera il sabato oppure al posto di un blocco di Impianti o Matematica della stessa settimana.</p>'}
+function nx(){var t=now(),b=null;ES.forEach(function(e){var n=Math.round((new Date(e[1]+"T12:00:00")-t)/864e5);if(n>=0&&!b)b=[e[0],n]});return b?'<p class="cnt">Prossimo esame: '+b[0]+(b[1]?', tra '+b[1]+' giorni':', oggi')+'</p>':''}
+function exl(){var h='<h2>Esami</h2>',t=now();ES.forEach(function(e){var d=new Date(e[1]+"T12:00:00"),n=Math.round((d-t)/864e5);h+='<div class="nop"><span class="lb">'+e[0]+'</span><span class="st">'+DS[d.getDay()]+' '+d.getDate()+' '+MN[d.getMonth()]+(n>0?', tra '+n+' giorni':n===0?', oggi':', passato')+'</span></div>'});return h}
+function row(t,lb,on,st){return '<button class="row'+(on?' done':'')+'" data-a="t" data-t="'+t+'" role="checkbox" aria-checked="'+(on?'true':'false')+'"><span class="box">'+(on?'✓':'')+'</span><span class="lb">'+lb+'</span><span class="st">'+(st||'')+'</span></button>'}
+function vOggi(){var r=rec(k(cur)),pl=plan(cur),sb=blocks(k(cur)),ss=r.s||{},tot=sb.length+pl.length+S.habits.length,dn=0,h='';
+pl.forEach(function(x){if(r[x[0]])dn++});S.habits.forEach(function(x){if(r.h[x.id])dn++});sb.forEach(function(x,i){if(ss[i])dn++});
+h+='<div class="lane"><i style="width:'+(tot?Math.round(dn*100/tot):0)+'%"></i></div><p class="cnt">Fatte '+dn+' su '+tot+'</p>'+nx();
+h+=pend();h+='<h2>Studio</h2>';
+if(sb.length){sb.forEach(function(b,i){h+=row("s:"+i,'<b>'+SN[b[0]]+' · '+KN[b[1]]+'</b><span class="g">'+esc(gl(b))+'</span>',ss[i],b[2]+'’')});if(FAC[k(cur)])h+='<p class="mu">'+FAC[k(cur)]+'</p>'}
+else h+=none(k(cur),cur);
+h+='<h2>Allenamento</h2>';
+if(pl.length){pl.forEach(function(x){h+=row(x[0],x[1],r[x[0]])});h+='<input class="nt" data-a="n" placeholder="Nota (facoltativa)" value="'+esc(r.note||"")+'">'}
+else h+='<div class="nop">Riposo</div>';
+h+='<h2>Abitudini</h2>';
+S.habits.forEach(function(x){var n=streak(x.id);h+=row("h:"+x.id,esc(x.n),r.h[x.id],n>1?n+' giorni':'')});
+if(!S.habits.length)h+='<div class="nop">Nessuna abitudine: aggiungile nelle Impostazioni.</div>';
+return h}
+function vSett(){var m=new Date(cur);m.setDate(m.getDate()-((m.getDay()+6)%7));var ta=0,td=0,ha=0,hd=0,ba=0,bd=0,rows='';
+for(var i=0;i<7;i++){var d=new Date(m);d.setDate(m.getDate()+i);var r=rec(k(d)),pl=plan(d),a=0,hn=0,sb=blocks(k(d)),sd=0;sb.forEach(function(x,j){if((r.s||{})[j])sd++});ba+=sb.length;bd+=sd;
+pl.forEach(function(x){if(r[x[0]])a++});S.habits.forEach(function(x){if(r.h[x.id])hn++});
+ta+=pl.length;td+=a;hd+=S.habits.length;ha+=hn;
+rows+='<button class="row wk'+(k(d)===k(cur)?' sel':'')+'" data-a="o" data-d="'+k(d)+'"><span class="lb"><b>'+DS[d.getDay()]+'</b> '+d.getDate()+' '+MN[d.getMonth()]+'</span><span class="st">'+(sb.length?'Studio '+sd+'/'+sb.length:'Studio –')+'</span><span class="st">'+(pl.length?'Allen. '+a+'/'+pl.length:'Riposo')+'</span><span class="st">Abit. '+hn+'/'+S.habits.length+'</span></button>'}
+return '<h2>Settimana del '+m.getDate()+' '+MN[m.getMonth()]+'</h2><p class="cnt">Blocchi di studio fatti: '+bd+' su '+ba+'<br>Allenamenti fatti: '+td+' su '+ta+'<br>Abitudini fatte: '+ha+' su '+hd+'</p>'+rows+exl()}
+function vImp(){var h='<h2>Abitudini</h2>';
+S.habits.forEach(function(x){h+='<div class="nop"><span class="lb">'+esc(x.n)+'</span><button class="sm" data-a="del" data-id="'+x.id+'">Elimina</button></div>'});
+h+='<div class="nop"><input id="nh" placeholder="Nuova abitudine"><button class="sm" data-a="add">Aggiungi</button></div>';
+h+='<h2>Copia dei dati</h2><p class="mu">I dati restano su questo telefono. Se cancelli i dati di Safari o rimuovi l’app dalla Home si perdono: ogni tanto seleziona il testo qui sotto, copialo e salvalo nelle Note.</p><textarea id="ex" readonly rows="4">'+esc(JSON.stringify(S))+'</textarea><p><button class="sm" data-a="sel">Seleziona tutto</button></p>';
+h+='<p class="mu">Per ripristinare, incolla qui il testo salvato.</p><textarea id="im" rows="3"></textarea><p><button class="sm" data-a="imp">Ripristina</button></p><p class="mu" id="ms"></p>';
+h+='<h2>Azzera</h2><p><button class="sm dg" data-a="rs">'+(armed?'Tocca di nuovo per confermare':'Azzera tutti i dati')+'</button></p>';
+return h}
+function fx(n){return Math.round(n*10)/10}
+function FS(){var f=PS;Object.keys(S.days).forEach(function(x){if(x<f)f=x});return f}
+function agg(ds){var t={s:[0,0],a:[0,0],h:[0,0],f:[0,0],hr:{},hb:{},v:[]},td=k(now()),f=FS();
+ds.forEach(function(d){var key=k(d);if(key>td||key<f){t.v.push(null);return}
+var r=rec(key),sb=blocks(key),pl=plan(d),ss=r.s||{},dn=0,tt=0;t.f[1]++;if(r.f&&(r.f.c||r.f.p||r.f.d||r.f.s))t.f[0]++;
+sb.forEach(function(b,i){var m=+b[2]/60,e=t.hr[SN[b[0]]]=t.hr[SN[b[0]]]||[0,0];e[1]+=m;t.s[1]++;tt++;if(ss[i]){e[0]+=m;t.s[0]++;dn++}});
+pl.forEach(function(x){t.a[1]++;tt++;if(r[x[0]]){t.a[0]++;dn++}});
+S.habits.forEach(function(x){var e=t.hb[x.id]=t.hb[x.id]||[0,0];e[1]++;t.h[1]++;tt++;if(r.h[x.id]){e[0]++;t.h[0]++;dn++}});
+t.v.push(tt?Math.round(dn*100/tt):null)});return t}
+function hb(lb,d,t,u){var p=t?Math.round(d*100/t):0;return '<div class="hb"><div class="hl"><span>'+lb+'</span><span class="st">'+(u?fx(d)+' su '+fx(t)+' ore':d+' su '+t)+', '+p+'%</span></div><div class="lane"><i style="width:'+p+'%"></i></div></div>'}
+function bars(v,lab){var n=v.length,w=320,h=100,g=w/n,bw=Math.min(30,g-3),s='<svg viewBox="0 0 '+w+' '+(h+20)+'" width="100%" role="img" aria-label="Grafico a barre del completamento in percentuale"><line x1="0" x2="'+w+'" y1="'+h+'" y2="'+h+'" style="stroke:var(--ln)"/>';
+v.forEach(function(x,i){var bx=i*g+(g-bw)/2,bh=x==null?2:Math.max(3,x*h/100);
+s+='<rect x="'+bx+'" y="'+(h-bh)+'" width="'+bw+'" height="'+bh+'" rx="3" style="fill:'+(x==null?'var(--dim)':'var(--ac)')+'"/>';
+if(lab[i])s+='<text x="'+(bx+bw/2)+'" y="'+(h+14)+'" text-anchor="middle" font-size="10" style="fill:var(--mu)">'+lab[i]+'</text>';
+if(x!=null&&n<=8)s+='<text x="'+(bx+bw/2)+'" y="'+(h-bh-3)+'" text-anchor="middle" font-size="10" style="fill:var(--tx)">'+x+'</text>'});
+return s+'</svg>'}
+var MS=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+function vAnd(){var ds=[],lab=[],ttl,h='';
+if(per==="sett"){var m=new Date(cur);m.setDate(m.getDate()-((m.getDay()+6)%7));for(var i=0;i<7;i++){var d=new Date(m);d.setDate(m.getDate()+i);ds.push(d);lab.push(DS[d.getDay()])}ttl='Settimana del '+m.getDate()+' '+MN[m.getMonth()]}
+else{var y=cur.getFullYear(),mo=cur.getMonth(),n=new Date(y,mo+1,0).getDate();for(var j=1;j<=n;j++){ds.push(new Date(y,mo,j,12));lab.push(j%5===1?""+j:"")}ttl=MS[mo]+' '+y}
+var t=agg(ds),dn=t.s[0]+t.a[0]+t.h[0],tt=t.s[1]+t.a[1]+t.h[1];
+h+='<div class="tabs"><button data-a="per" data-v="sett"'+(per==="sett"?' class="on"':'')+'>Settimana</button><button data-a="per" data-v="mese"'+(per==="mese"?' class="on"':'')+'>Mese</button></div><h2>'+ttl+'</h2>';
+if(!tt)return h+'<div class="nop">Ancora nessun dato per questo periodo.</div>';
+h+='<div class="big">'+Math.round(dn*100/tt)+'%</div><p class="cnt">dei compiti completati ('+dn+' su '+tt+')</p><h2>Giorno per giorno</h2>'+bars(t.v,lab);
+if(per==="mese"){var G={},O=[];ds.forEach(function(d){var q=new Date(d);q.setDate(q.getDate()-((q.getDay()+6)%7));var qk=k(q);if(!G[qk]){G[qk]=[];O.push([qk,q])}G[qk].push(d)});
+var wv=[],wl=[];O.forEach(function(o){var a=agg(G[o[0]]),x=a.s[0]+a.a[0]+a.h[0],z=a.s[1]+a.a[1]+a.h[1];wv.push(z?Math.round(x*100/z):null);wl.push(o[1].getDate()+"/"+(o[1].getMonth()+1))});
+h+='<h2>Settimana per settimana (inizio lunedì)</h2>'+bars(wv,wl)}
+h+='<h2>Obiettivi per categoria</h2>'+hb('Studio',t.s[0],t.s[1])+hb('Allenamento',t.a[0],t.a[1])+hb('Abitudini',t.h[0],t.h[1])+hb('Diario compilato',t.f[0],t.f[1]);
+h+='<h2>Ore di studio per materia</h2>';Object.keys(SN).forEach(function(c){var e=t.hr[SN[c]];if(e)h+=hb(SN[c],e[0],e[1],1)});
+h+='<h2>Abitudini una per una</h2>';S.habits.forEach(function(x){var e=t.hb[x.id];if(e)h+=hb(esc(x.n),e[0],e[1])});
+return h}
+var FL=[["c","Colazione"],["p","Pranzo"],["d","Cena"],["s","Spuntini"]];
+function vDia(){var r=rec(k(cur)),f=r.f||{},h='<h2>Cosa ho mangiato</h2>';
+FL.forEach(function(x){h+='<label class="fl">'+x[1]+'<textarea class="fd" rows="2" data-f="'+x[0]+'" placeholder="Scrivi qui">'+esc(f[x[0]]||"")+'</textarea></label>'});
+var L=[],t=now();for(var i=0;i<14;i++){var d=new Date(t);d.setDate(t.getDate()-i);var q=(S.days[k(d)]||{}).f;if(q&&FL.some(function(x){return q[x[0]]}))L.push([d,q])}
+h+='<h2>Ultimi giorni</h2>';if(!L.length)h+='<div class="nop">Ancora niente scritto.</div>';
+L.forEach(function(x){var s=FL.filter(function(y){return x[1][y[0]]}).map(function(y){return y[1]+': '+x[1][y[0]]}).join('; ');if(s.length>110)s=s.slice(0,108)+'…';h+='<button class="row" data-a="od" data-d="'+k(x[0])+'"><span class="lb"><b>'+DS[x[0].getDay()]+' '+x[0].getDate()+' '+MN[x[0].getMonth()]+'</b><span class="g">'+esc(s)+'</span></span></button>'});
+return h}
+function boot(){var c=window.claude,off="Dati salvati su questo telefono.";
+if(!c||!c.use){setSt(off);return}
+Promise.all([c.use("db"),c.use("user")]).then(function(a){var db=a[0],us=a[1];if(!db||!us){setSt(off);return}
+return us.id().then(function(id){if(!id){setSt(off);return}
+return db.collection("data/users/"+id).get().then(function(snap){var nd={},hab=null;
+snap.docs.forEach(function(d){var v=d.data()||{};last[d.id]=JSON.stringify(v);if(d.id==="cfg"&&Array.isArray(v.habits))hab=v.habits;else if(v.days)Object.keys(v.days).forEach(function(q){nd[q]=v.days[q]})});
+Object.keys(S.days).forEach(function(q){if(pre[q]||!nd[q])nd[q]=S.days[q]});
+S.days=nd;if(hab)S.habits=hab;DBX=db;UID=id;ready=true;setSt("Dati salvati nel tuo account.");render();persist()})})}).catch(function(){setSt("Non riesco a collegarmi all’account: salvo solo su questo dispositivo.")})}
+function render(){var isT=k(cur)===k(now());
+var hd='<div class="top"><button class="nb" data-a="pv" aria-label="Giorno precedente">‹</button><div class="date"><b>'+DL[cur.getDay()]+' '+cur.getDate()+' '+MN[cur.getMonth()]+'</b>'+(isT?'<small>Oggi</small>':'<button class="lnk" data-a="td">Torna a oggi</button>')+'</div><button class="nb" data-a="nx" aria-label="Giorno successivo">›</button></div>';
+var tb='<div class="tabs">'+[["oggi","Oggi"],["sett","Settimana"],["and","Andamento"],["dia","Diario"],["imp","Opzioni"]].map(function(x){return '<button data-a="tab" data-v="'+x[0]+'"'+(tab===x[0]?' class="on"':'')+'>'+x[1]+'</button>'}).join('')+'</div>';
+app.innerHTML=hd+tb+(tab==="oggi"?vOggi():tab==="sett"?vSett():tab==="and"?vAnd():tab==="dia"?vDia():vImp())+'<p class="mu" id="stt">'+esc(ST)+'</p>'}
+app.addEventListener("click",function(e){var el=e.target.closest("[data-a]");if(!el)return;var a=el.dataset.a;
+if(a==="n")return;if(a!=="rs")armed=false;
+if(a==="pv"||a==="nx"){var sg=a==="nx"?1:-1;if(tab==="and"&&per==="mese")cur.setMonth(cur.getMonth()+sg,1);else cur.setDate(cur.getDate()+sg*(tab==="and"?7:1))}
+else if(a==="td")cur=now();
+else if(a==="tab")tab=el.dataset.v;
+else if(a==="per")per=el.dataset.v;
+else if(a==="od")cur=new Date(el.dataset.d+"T12:00:00");
+else if(a==="o"){cur=new Date(el.dataset.d+"T12:00:00");tab="oggi"}
+else if(a==="t"){var t=el.dataset.t,r=wr(k(cur));if(t.indexOf("h:")===0){var id=t.slice(2);if(r.h[id])delete r.h[id];else r.h[id]=1}else if(t.indexOf("s:")===0){var i=t.slice(2);r.s=r.s||{};if(r.s[i])delete r.s[i];else r.s[i]=1}else r[t]=r[t]?0:1;save()}
+else if(a==="add"){var v=document.getElementById("nh").value.trim();if(v){S.habits.push({id:"h"+Date.now(),n:v});save()}}
+else if(a==="del"){S.habits=S.habits.filter(function(x){return x.id!==el.dataset.id});save()}
+else if(a==="sel"){var x=document.getElementById("ex");x.focus();x.select();return}
+else if(a==="imp"){var ms=document.getElementById("ms");try{var o=JSON.parse(document.getElementById("im").value);if(o&&Array.isArray(o.habits)&&o.days&&typeof o.days==="object"){S=o;save();ms.textContent="";render();return}}catch(er){}ms.textContent="Il testo non è valido: incolla la copia intera.";return}
+else if(a==="rs"){if(armed){S=def();save();armed=false}else armed=true}
+render()});
+app.addEventListener("input",function(e){if(e.target.dataset.a==="n"){wr(k(cur)).note=e.target.value;save()}else if(e.target.dataset.f){var rr=wr(k(cur));rr.f=rr.f||{};rr.f[e.target.dataset.f]=e.target.value;save()}});
+render();boot();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+})();
+</script>
+</body>
+</html>
